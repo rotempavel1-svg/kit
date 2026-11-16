@@ -1,0 +1,1838 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>העוזר הפשוט למטבח</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Rubik for ultra-clear Hebrew readability -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+    <!-- HLS.js for Israeli Radio Streams -->
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Rubik', sans-serif;
+            background-color: #1E293B; /* Dark frame around the iPad 4:3 screen on desktop */
+            color: #0F172A;
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        /* iPad Landscape 4:3 Container */
+        .ipad-landscape-frame {
+            width: 100vw;
+            height: 100vh;
+            max-width: calc(100vh * (4 / 3));
+            max-height: calc(100vw * (3 / 4));
+            background-color: #FFFDF9;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 25px 70px rgba(0, 0, 0, 0.55);
+        }
+
+        /* On actual full-screen tablets or wider screens where full-bleed is desired */
+        @media (max-width: 1024px) {
+            .ipad-landscape-frame {
+                max-width: 100vw;
+                max-height: 100vh;
+                border-radius: 0;
+            }
+        }
+        @media (min-width: 1025px) {
+            .ipad-landscape-frame {
+                border-radius: 28px;
+                border: 8px solid #334155;
+            }
+        }
+
+        /* Tactile Button Press Effect */
+        .big-touch-btn {
+            transition: transform 0.1s ease, box-shadow 0.1s ease, background-color 0.15s ease;
+        }
+        .big-touch-btn:active {
+            transform: scale(0.96);
+        }
+
+        /* Microphone Listening Pulse */
+        @keyframes pulseRed {
+            0% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.65); }
+            70% { box-shadow: 0 0 0 40px rgba(220, 38, 38, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
+        }
+        .mic-listening-pulse {
+            animation: pulseRed 1.4s infinite;
+        }
+
+        /* Cute Character Screensaver Animations */
+        @keyframes buddyFloat {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-14px); }
+        }
+        @keyframes buddyDance {
+            0%, 100% { transform: translateY(0px) rotate(-4deg) scale(1); }
+            25% { transform: translateY(-18px) rotate(0deg) scale(1.04); }
+            50% { transform: translateY(0px) rotate(4deg) scale(1); }
+            75% { transform: translateY(-14px) rotate(0deg) scale(1.03); }
+        }
+        @keyframes noteFloatUp {
+            0% { transform: translateY(0) scale(0.7); opacity: 0; }
+            20% { opacity: 1; }
+            80% { opacity: 0.9; }
+            100% { transform: translateY(-130px) translateX(30px) scale(1.3); opacity: 0; }
+        }
+        .buddy-idle { animation: buddyFloat 3.8s ease-in-out infinite; }
+        .buddy-dancing { animation: buddyDance 1s ease-in-out infinite; }
+        .floating-note { animation: noteFloatUp 3s ease-out infinite; }
+
+        /* Clean Scrollbars for Recipe Columns if needed */
+        .clean-scroll::-webkit-scrollbar {
+            width: 12px;
+        }
+        .clean-scroll::-webkit-scrollbar-track {
+            background: #F1F5F9;
+            border-radius: 8px;
+        }
+        .clean-scroll::-webkit-scrollbar-thumb {
+            background: #CBD5E1;
+            border-radius: 8px;
+        }
+
+        /* Station Logo Badge Container */
+        .station-logo-wrap {
+            width: 84px;
+            height: 84px;
+            border-radius: 20px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+            flex-shrink: 0;
+            background: #FFFFFF;
+        }
+        .tv-logo-wrap {
+            width: 64px;
+            height: 48px;
+            border-radius: 12px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===================================================== -->
+    <!-- IPAD LANDSCAPE (4:3) MAIN CONTAINER                   -->
+    <!-- ===================================================== -->
+    <div class="ipad-landscape-frame">
+
+        <!-- ================================================= -->
+        <!-- TOP HEADER BAR (Clock, Radio Pill, Back Button)   -->
+        <!-- ================================================= -->
+        <header class="h-24 bg-white border-b-4 border-slate-200 px-6 flex items-center justify-between shrink-0 z-20">
+            
+            <!-- Right Side: Huge Digital Clock & Day -->
+            <div class="flex items-center gap-4">
+                <div id="clockTime" class="text-5xl font-black text-slate-900 tracking-tight">12:00</div>
+                <div id="clockDay" class="text-2xl font-bold text-slate-500 border-r-4 border-slate-300 pr-4">יום שני</div>
+            </div>
+
+            <!-- Center: Active Radio/TV Indicator Pill (Hidden when off) -->
+            <div id="headerRadioPill" class="hidden items-center gap-4 bg-orange-100 border-3 border-orange-400 px-5 py-2.5 rounded-full shadow-sm">
+                <span id="headerMediaIcon" class="text-2xl">📻</span>
+                <span id="headerRadioText" class="text-2xl font-black text-orange-950">מנגן: גלגלצ</span>
+                <button onclick="stopAllMedia()" class="big-touch-btn bg-red-600 hover:bg-red-500 text-white text-xl font-black px-5 py-1.5 rounded-full shadow">
+                    ⏹️ עצור
+                </button>
+            </div>
+
+            <!-- Left Side: Screensaver Button (on Home) OR Giant Back to Main Menu Button -->
+            <div>
+                <button id="btnScreensaverPreview" onclick="openScreensaver()" class="big-touch-btn bg-slate-800 hover:bg-slate-700 text-white text-2xl font-extrabold px-6 py-3.5 rounded-2xl shadow-md flex items-center gap-3">
+                    <span>😴</span>
+                    <span>שומר מסך</span>
+                </button>
+
+                <button id="btnBackToHome" onclick="navigateTo('home')" class="hidden big-touch-btn bg-slate-900 hover:bg-slate-800 text-white text-2xl md:text-3xl font-black px-7 py-3.5 rounded-2xl shadow-lg flex items-center gap-3 border-b-4 border-slate-950">
+                    <span>🏠</span>
+                    <span>חזרה לתפריט הראשי</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- ================================================= -->
+        <!-- MAIN WORKSPACE (No scrolling, clean full-height)  -->
+        <!-- ================================================= -->
+        <main class="flex-1 p-5 md:p-7 flex flex-col overflow-hidden bg-[#FFFDF9]">
+
+            <!-- ============================================= -->
+            <!-- SCREEN 0: MAIN MENU (2x2 GRID OF 4 BUTTONS)   -->
+            <!-- ============================================= -->
+            <section id="screen-home" class="flex-1 grid grid-cols-2 grid-rows-2 gap-6 h-full">
+                
+                <!-- 1. RADIO BUTTON -->
+                <button onclick="navigateTo('radio')" class="big-touch-btn h-full rounded-[32px] bg-gradient-to-b from-orange-400 to-orange-600 text-white shadow-xl border-b-[10px] border-orange-800 flex items-center justify-center p-6 gap-7">
+                    <span class="text-8xl drop-shadow-md">📻</span>
+                    <div class="text-right">
+                        <div class="text-5xl md:text-6xl font-black tracking-wide">רדיו ישראלי</div>
+                        <div class="text-2xl font-bold text-orange-100 mt-1">12 תחנות בשידור חי</div>
+                    </div>
+                </button>
+
+                <!-- 2. LIVE TV BUTTON -->
+                <button onclick="navigateTo('tv')" class="big-touch-btn h-full rounded-[32px] bg-gradient-to-b from-purple-500 to-purple-700 text-white shadow-xl border-b-[10px] border-purple-950 flex items-center justify-center p-6 gap-7">
+                    <span class="text-8xl drop-shadow-md">📺</span>
+                    <div class="text-right">
+                        <div class="text-5xl md:text-6xl font-black tracking-wide">טלוויזיה חיה</div>
+                        <div class="text-2xl font-bold text-purple-100 mt-1">ערוצי ישראל בשידור חי</div>
+                    </div>
+                </button>
+
+                <!-- 3. AI VOICE ASSISTANT BUTTON -->
+                <button onclick="navigateTo('ai')" class="big-touch-btn h-full rounded-[32px] bg-gradient-to-b from-blue-500 to-indigo-700 text-white shadow-xl border-b-[10px] border-indigo-950 flex items-center justify-center p-6 gap-7">
+                    <span class="text-8xl drop-shadow-md">🎙️</span>
+                    <div class="text-right">
+                        <div class="text-5xl md:text-6xl font-black tracking-wide">עוזר AI קולי</div>
+                        <div class="text-2xl font-bold text-blue-100 mt-1">שאלו בקול כל שאלה</div>
+                    </div>
+                </button>
+
+                <!-- 4. RECIPES BUTTON -->
+                <button onclick="navigateTo('recipes')" class="big-touch-btn h-full rounded-[32px] bg-gradient-to-b from-emerald-500 to-emerald-700 text-white shadow-xl border-b-[10px] border-emerald-950 flex items-center justify-center p-6 gap-7">
+                    <span class="text-8xl drop-shadow-md">📖</span>
+                    <div class="text-right">
+                        <div class="text-5xl md:text-6xl font-black tracking-wide">מתכונים</div>
+                        <div class="text-2xl font-bold text-emerald-100 mt-1">ספר המתכונים שלי</div>
+                    </div>
+                </button>
+
+            </section>
+
+            <!-- ============================================= -->
+            <!-- SCREEN 1: ISRAELI RADIO (12 Stations, 2 Pages)-->
+            <!-- ============================================= -->
+            <section id="screen-radio" class="hidden flex-1 flex-col justify-between gap-4 h-full">
+                
+                <!-- 2x3 Grid of 6 Huge Station Buttons with Real Logos -->
+                <div id="radioStationsGrid" class="flex-1 grid grid-cols-3 grid-rows-2 gap-4">
+                    <!-- Populated by JS -->
+                </div>
+
+                <!-- Bottom Control Row: Page Switcher + Stop + Big Volume Buttons -->
+                <div class="h-24 grid grid-cols-4 gap-4 shrink-0">
+                    <button id="btnRadioNextPage" onclick="toggleRadioPage()" class="big-touch-btn rounded-3xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-2xl md:text-3xl shadow-md border-b-8 border-amber-700 flex items-center justify-center gap-2">
+                        <span>🔄</span>
+                        <span id="radioPageBtnLabel">עוד תחנות (1/2)</span>
+                    </button>
+
+                    <button onclick="stopRadio()" class="big-touch-btn rounded-3xl bg-red-600 hover:bg-red-500 text-white font-black text-2xl md:text-3xl shadow-md border-b-8 border-red-800 flex items-center justify-center gap-2">
+                        <span>⏹️</span>
+                        <span>עצור רדיו</span>
+                    </button>
+
+                    <button onclick="changeVolume(0.15)" class="big-touch-btn rounded-3xl bg-white hover:bg-slate-100 text-slate-900 font-black text-2xl md:text-3xl shadow-md border-4 border-slate-300 border-b-8 flex items-center justify-center gap-2">
+                        <span>🔊</span>
+                        <span>הגבר +</span>
+                    </button>
+
+                    <button onclick="changeVolume(-0.15)" class="big-touch-btn rounded-3xl bg-white hover:bg-slate-100 text-slate-900 font-black text-2xl md:text-3xl shadow-md border-4 border-slate-300 border-b-8 flex items-center justify-center gap-2">
+                        <span>🔉</span>
+                        <span>הנמך -</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- ============================================= -->
+            <!-- SCREEN 1.5: ISRAELI LIVE TV SCREEN            -->
+            <!-- ============================================= -->
+            <section id="screen-tv" class="hidden flex-1 grid grid-cols-12 gap-5 h-full overflow-hidden">
+                
+                <!-- Right Column: Big Channel Buttons List (5 Cols) -->
+                <div class="col-span-5 flex flex-col justify-between gap-2.5 h-full overflow-y-auto clean-scroll pr-1" id="tvChannelsList">
+                    <!-- Populated by JS -->
+                </div>
+
+                <!-- Left Column: Built-in Live TV Video Player & Big Controls (7 Cols) -->
+                <div class="col-span-7 flex flex-col justify-between gap-4 h-full overflow-hidden">
+                    
+                    <!-- Video Container -->
+                    <div id="tvPlayerContainer" class="relative flex-1 bg-slate-950 rounded-[28px] border-4 border-slate-800 shadow-2xl overflow-hidden flex items-center justify-center">
+                        
+                        <video id="tvVideoElement" class="w-full h-full object-contain bg-black" playsinline controls></video>
+
+                        <!-- Idle / Channel Overlay Message -->
+                        <div id="tvOverlayState" class="absolute inset-0 bg-slate-950/90 flex flex-col items-center justify-center text-center p-6 z-10">
+                            <div id="tvOverlayIcon" class="text-7xl mb-4">📺</div>
+                            <div id="tvOverlayTitle" class="text-4xl font-black text-white mb-2">בחרו ערוץ טלוויזיה מימין</div>
+                            <div id="tvOverlaySubtitle" class="text-2xl font-bold text-slate-300 max-w-md">לחיצה על כל ערוץ תפעיל את השידור החי מיד</div>
+                            
+                            <!-- Direct Broadcaster Stream Fallback Button (shown only if channel blocks embedded CORS) -->
+                            <a id="tvExternalLinkBtn" href="#" target="_blank" rel="noopener noreferrer" class="hidden mt-6 big-touch-btn bg-purple-600 hover:bg-purple-500 text-white text-3xl font-black px-8 py-4 rounded-2xl shadow-xl border-b-6 border-purple-900 items-center gap-3">
+                                <span>▶️</span>
+                                <span id="tvExternalLinkText">פתח שידור חי רשמי</span>
+                            </a>
+                        </div>
+
+                        <!-- Live Channel Corner Badge -->
+                        <div id="tvActiveBadge" class="hidden absolute top-4 right-4 bg-red-600/90 text-white px-4 py-1.5 rounded-full text-xl font-black items-center gap-2 shadow-lg pointer-events-none z-20">
+                            <span class="w-3 h-3 rounded-full bg-white animate-ping"></span>
+                            <span id="tvActiveBadgeText">שידור חי</span>
+                        </div>
+                    </div>
+
+                    <!-- Bottom Big TV Controls -->
+                    <div class="h-20 grid grid-cols-3 gap-4 shrink-0">
+                        <button onclick="toggleTvFullscreen()" class="big-touch-btn rounded-2xl bg-purple-600 hover:bg-purple-500 text-white font-black text-2xl md:text-3xl shadow-md border-b-6 border-purple-900 flex items-center justify-center gap-2">
+                            <span>⛶</span>
+                            <span>מסך מלא</span>
+                        </button>
+
+                        <button onclick="changeVolume(0.15)" class="big-touch-btn rounded-2xl bg-white hover:bg-slate-100 text-slate-900 font-black text-2xl md:text-3xl shadow-md border-4 border-slate-300 border-b-6 flex items-center justify-center gap-2">
+                            <span>🔊</span>
+                            <span>הגבר קול +</span>
+                        </button>
+
+                        <button onclick="stopTv()" class="big-touch-btn rounded-2xl bg-red-600 hover:bg-red-500 text-white font-black text-2xl md:text-3xl shadow-md border-b-6 border-red-800 flex items-center justify-center gap-2">
+                            <span>⏹️</span>
+                            <span>עצור שידור</span>
+                        </button>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- ============================================= -->
+            <!-- SCREEN 2: VOICE AI ASSISTANT (VOICE ONLY!)    -->
+            <!-- ============================================= -->
+            <section id="screen-ai" class="hidden flex-1 flex-col justify-between items-center gap-6 h-full">
+                
+                <!-- Top/Center Display Box for Voice Conversation -->
+                <div class="w-full flex-1 bg-white rounded-[32px] border-4 border-indigo-200 shadow-inner p-7 flex flex-col justify-center items-center text-center relative overflow-y-auto clean-scroll">
+                    
+                    <!-- Spoken User Question Pill (shown after user speaks) -->
+                    <div id="aiUserSpokenBox" class="hidden mb-4 bg-indigo-50 border-2 border-indigo-200 px-6 py-2.5 rounded-full text-2xl font-bold text-indigo-900">
+                        שאלת: "<span id="aiUserSpokenText"></span>"
+                    </div>
+
+                    <!-- Main Huge Status / Answer Text -->
+                    <div id="aiMainDisplayText" class="text-4xl md:text-5xl font-black text-slate-800 leading-snug max-w-4xl">
+                        לחצו על הכפתור העגול למטה ודברו אל העוזר
+                    </div>
+
+                    <!-- Stop Reading Aloud Button (Only shown while TTS is speaking) -->
+                    <button id="btnStopReading" onclick="stopSpeaking()" class="hidden mt-6 big-touch-btn bg-red-600 hover:bg-red-500 text-white text-3xl font-black px-8 py-4 rounded-2xl shadow-lg border-b-6 border-red-800 items-center gap-3">
+                        <span>⏹️</span>
+                        <span>עצור הקראה</span>
+                    </button>
+                </div>
+
+                <!-- Bottom: One Gigantic Circular Microphone Button -->
+                <div class="shrink-0 flex flex-col items-center pb-1">
+                    <button id="giantMicButton" onclick="toggleVoiceAssistant()" class="big-touch-btn w-48 h-48 md:w-52 md:h-52 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white shadow-2xl border-b-[10px] border-indigo-900 flex flex-col items-center justify-center gap-2">
+                        <span id="giantMicEmoji" class="text-6xl md:text-7xl">🎤</span>
+                        <span id="giantMicLabel" class="text-3xl font-black">לחץ ודבר</span>
+                    </button>
+                </div>
+
+            </section>
+
+            <!-- ============================================= -->
+            <!-- SCREEN 3: RECIPES (Grid View & Single View)   -->
+            <!-- ============================================= -->
+            <section id="screen-recipes" class="hidden flex-1 flex-col h-full overflow-hidden">
+                
+                <!-- VIEW A: 2x3 Grid of 6 Large Recipe Buttons -->
+                <div id="recipesGridView" class="flex-1 grid grid-cols-3 grid-rows-2 gap-6 h-full">
+                    <!-- Populated by JS -->
+                </div>
+
+                <!-- VIEW B: Single Recipe Side-by-Side Landscape View -->
+                <div id="recipeSingleView" class="hidden flex-1 flex-col gap-5 h-full overflow-hidden">
+                    
+                    <!-- Recipe Top Sub-header -->
+                    <div class="flex items-center justify-between bg-emerald-50 border-3 border-emerald-200 px-6 py-3.5 rounded-3xl shrink-0">
+                        <div class="flex items-center gap-4">
+                            <span id="singleRecipeEmoji" class="text-5xl">🍳</span>
+                            <h2 id="singleRecipeTitle" class="text-4xl font-black text-slate-900">שם המתכון</h2>
+                        </div>
+
+                        <button onclick="backToRecipesList()" class="big-touch-btn bg-emerald-700 hover:bg-emerald-600 text-white text-2xl font-black px-6 py-3 rounded-2xl shadow flex items-center gap-2">
+                            <span>🔙</span>
+                            <span>חזרה לרשימת המתכונים</span>
+                        </button>
+                    </div>
+
+                    <!-- Side-by-Side Columns (Right: Ingredients, Left: Steps) -->
+                    <div class="flex-1 grid grid-cols-12 gap-6 overflow-hidden">
+                        
+                        <!-- Right Column: Ingredients (5 cols) -->
+                        <div class="col-span-5 bg-white rounded-3xl border-3 border-amber-200 p-5 flex flex-col overflow-hidden">
+                            <h3 class="text-3xl font-black text-amber-900 border-b-2 border-amber-100 pb-3 mb-3 shrink-0">
+                                🛒 מצרכים (לחצו לסימון)
+                            </h3>
+                            <div id="singleRecipeIngredients" class="flex-1 overflow-y-auto clean-scroll space-y-3 pr-1">
+                                <!-- Populated by JS -->
+                            </div>
+                        </div>
+
+                        <!-- Left Column: Preparation Steps (7 cols) -->
+                        <div class="col-span-7 bg-white rounded-3xl border-3 border-emerald-200 p-5 flex flex-col overflow-hidden">
+                            <h3 class="text-3xl font-black text-emerald-900 border-b-2 border-emerald-100 pb-3 mb-3 shrink-0">
+                                👩‍🍳 הוראות הכנה
+                            </h3>
+                            <div id="singleRecipeSteps" class="flex-1 overflow-y-auto clean-scroll space-y-4 pr-1">
+                                <!-- Populated by JS -->
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </section>
+
+        </main>
+
+        <!-- ================================================= -->
+        <!-- CUTE ANIMATED CHARACTER SCREENSAVER OVERLAY       -->
+        <!-- ================================================= -->
+        <div id="screensaverOverlay" onclick="closeScreensaver()" class="hidden absolute inset-0 bg-slate-950 z-50 flex-col items-center justify-between p-8 text-white cursor-pointer">
+            
+            <!-- Top Large Clock on Screensaver -->
+            <div class="text-center mt-2">
+                <div id="ssClockTime" class="text-8xl font-black text-amber-100 tracking-tight">12:00</div>
+                <div id="ssClockDay" class="text-3xl font-bold text-slate-400 mt-1">יום שני</div>
+            </div>
+
+            <!-- Center Cute Animated Chef/Robot SVG Character -->
+            <div class="relative flex flex-col items-center justify-center my-auto">
+                
+                <!-- Floating Music Notes Container (when radio plays) -->
+                <div id="ssNotesContainer" class="absolute inset-0 pointer-events-none"></div>
+
+                <!-- Cute SVG Character -->
+                <div class="w-64 h-64 md:w-72 md:h-72 flex items-center justify-center">
+                    <svg viewBox="0 0 300 300" class="w-full h-full overflow-visible">
+                        <!-- Shadow -->
+                        <ellipse cx="150" cy="280" rx="70" ry="12" fill="rgba(0,0,0,0.45)" />
+
+                        <g id="buddySvgBody" class="buddy-idle">
+                            <!-- Chef Hat -->
+                            <path d="M100 72 C72 68, 75 26, 112 30 C122 8, 178 8, 188 30 C225 26, 228 68, 200 72 Z" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="5" />
+                            <rect x="98" y="66" width="104" height="20" rx="6" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="4" />
+
+                            <!-- Round Friendly Body/Head -->
+                            <rect x="65" y="84" width="170" height="156" rx="64" fill="#FFFBEB" stroke="#F59E0B" stroke-width="7" />
+
+                            <!-- Dark Face Screen -->
+                            <rect x="85" y="106" width="130" height="86" rx="36" fill="#1E293B" />
+
+                            <!-- Rosy Cheeks -->
+                            <ellipse cx="104" cy="164" rx="10" ry="6" fill="#FB7185" opacity="0.7" />
+                            <ellipse cx="196" cy="164" rx="10" ry="6" fill="#FB7185" opacity="0.7" />
+
+                            <!-- Eyes Group (moves gently left/right) -->
+                            <g id="buddyEyes" style="transition: transform 0.4s ease;">
+                                <g id="buddyEyesOpen">
+                                    <circle cx="120" cy="144" r="13" fill="#38BDF8" />
+                                    <circle cx="116" cy="139" r="4.5" fill="#FFFFFF" />
+                                    <circle cx="180" cy="144" r="13" fill="#38BDF8" />
+                                    <circle cx="176" cy="139" r="4.5" fill="#FFFFFF" />
+                                </g>
+                                <g id="buddyEyesBlink" class="hidden">
+                                    <path d="M107 144 Q120 132 133 144" fill="none" stroke="#38BDF8" stroke-width="6" stroke-linecap="round" />
+                                    <path d="M167 144 Q180 132 193 144" fill="none" stroke="#38BDF8" stroke-width="6" stroke-linecap="round" />
+                                </g>
+                            </g>
+
+                            <!-- Happy Smile -->
+                            <path d="M135 166 Q150 180 165 166" fill="none" stroke="#38BDF8" stroke-width="5.5" stroke-linecap="round" />
+
+                            <!-- Cute Little Red Heart on Belly -->
+                            <path d="M150 225 C150 225 138 216 138 209 C138 204 144 201 150 207 C156 201 162 204 162 209 C162 216 150 225 150 225 Z" fill="#FB7185" />
+                        </g>
+                    </svg>
+                </div>
+
+                <div id="ssStatusLine" class="mt-4 text-3xl font-extrabold text-amber-200">
+                    שומר על המטבח בחיוך 😊
+                </div>
+            </div>
+
+            <!-- Bottom Wake Instruction -->
+            <div class="text-2xl font-bold text-slate-400 mb-2">
+                👆 געו במסך כדי לחזור
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Hidden Audio Elements -->
+    <audio id="radioAudio" crossorigin="anonymous"></audio>
+    <audio id="ttsAudio"></audio>
+
+    <!-- ===================================================== -->
+    <!-- JAVASCRIPT LOGIC                                      -->
+    <!-- ===================================================== -->
+    <script>
+        const apiKey = ""; // Injected by environment
+
+        // =====================================================
+        // 1. AUTHENTIC ISRAELI RADIO LOGOS (SVG + API FAVICON)
+        // =====================================================
+        const STATION_LOGOS_SVG = {
+            galgalatz: `
+                <svg viewBox="0 0 100 100" class="w-full h-full">
+                    <rect width="100" height="100" rx="20" fill="#DC2626"/>
+                    <circle cx="50" cy="50" r="40" fill="none" stroke="#FFFFFF" stroke-width="5"/>
+                    <text x="50" y="55" text-anchor="middle" fill="#FFFFFF" font-family="Rubik, sans-serif" font-weight="900" font-size="25">גלגלצ</text>
+                    <rect x="24" y="65" width="52" height="16" rx="8" fill="#FFFFFF"/>
+                    <text x="50" y="77" text-anchor="middle" fill="#DC2626" font-family="Rubik, sans-serif" font-weight="900" font-size="11">91.8 FM</text>
+                </svg>`,
+            kan_bet: `
+                <svg viewBox="0 0 100 100" class="w-full h-full">
+                    <rect width="100" height="100" rx="20" fill="#0284C7"/>
+                    <text x="50" y="42" text-anchor="middle" fill="#FFFFFF" font-family="Rubik, sans-serif" font-weight="900" font-size="22">כאן</text>
+                    <text x="50" y="75" text-anchor="middle" fill="#FDE047" font-family="Rubik, sans-serif" font-weight="900" font-size="34">ב׳</text>
+                    <text x="50" y="92" text-anchor="middle" fill="#E0F2FE" font-family="Rubik, sans-serif" font-weight="700" font-size="11">95.5 FM</text>
+                </svg>`,
+            glz: `
+                <svg viewBox="0 0 100 100" class="w-full h-full">
+                    <rect width="100" height="100" rx="20" fill="#1E3A8A"/>
+                    <path d="M18 32 Q50 18 82 32" stroke="#38BDF8" stroke-width="4" fill="none" stroke-linecap="round"/>
+                    <text x="50" y="56" text-anchor="middle" fill="#FFFFFF" font-family="Rubik, sans-serif" font-weight="900" font-size="27">גל״צ</text>
+                    <text x="50" y="76" text-anchor="middle" fill="#93C5FD" font-family="Rubik, sans-serif" font-weight="800" font-size="13">גלי צה״ל</text>
+                    <text x="50" y="91" text-anchor="middle" fill="#FFFFFF" font-family="Rubik, sans-serif" font-weight="700" font-size="10">96.6 FM</text>
+                </svg>`,
+            kan_gimel: `
+                <svg viewBox="0 0 100 100" class="w-full h-full">
+                    <rect width="100" height="100" rx="20" fill="#7C3AED"/>
+                    <text x="50" y="38" text-anchor="middle" fill="#FFFFFF" font-family="Rubik, sans-serif" font-weight="900" font-size="21">כאן</text>
+                    <text x="50" y="69" text-anchor="middle" fill="#FDE047" font-family="Rubik, sans-serif" font-weight="900" font-size="27">גימל</text>
+                    <text x="50" y="90" text-anchor="middle" fill="#EDE9FE" font-family="Rubik, sans-serif" font-weight="700" font-size="11">97.8 FM</text>
+                </svg>`,
+            eco99: `
+                <svg viewBox="0 0 100 100" class="w-full h-full">
+                    <rect width="100" height="100" rx="20" fill="#16A34A"/>
+                    <circle cx="50" cy="44" r="28" fill="#0F172A"/>
+                    <text x="50" y="42" text-anchor="middle" fill="#4ADE80" font-family="Rubik, sans-serif" font-weight="900" font-size="16">eco</text>
+                    <text x="50" y="61" text-anchor="middle" fill="#FFFFFF" font-family="Rubik, sans-serif" font-weight="900" font-size="21">99</text>
+                    <text x="50" y="90" text-anchor="middle" fill="#FFFFFF" font-family="Rubik, sans-serif" font-weight="900" font-size="15">99 FM</text>
+                </svg>`,
+            radio103: `
+                <svg viewBox="0 0 100 100" class="w-full h-full">
+                    <rect width="100" height="100" rx="20" fill="#FACC15"/>
+                    <rect x="8" y="18" width="84" height="64" rx="14" fill="#0F172A"/>
+                    <text x="50" y="54" text-anchor="middle" fill="#FACC15" font-family="Rubik, sans-serif" font-weight="900" font-size="30">103</text>
+                    <text x="50" y="74" text-anchor="middle" fill="#FFFFFF" font-family="Rubik, sans-serif" font-weight="900" font-size="16">FM</text>
+                </svg>`,
+            kan_88: `
+                <svg viewBox="0 0 100 100" class="w-full h-full">
+                    <rect width="100" height="100" rx="20" fill="#0F172A"/>
+                    <text x="50" y="36" text-anchor="middle" fill="#38BDF8" font-family="Rubik, sans-serif" font-weight="900" font-size="20">כאן</text>
+                    <text x="50" y="74" text-anchor="middle" fill="#F43F5E" font-family="Rubik, sans-serif" font-weight="900" font-size="38">88</text>
+                    <text x="50" y="92" text-anchor="middle" fill="#94A3B8" font-family="Rubik, sans-serif" font-weight="700" font-size="11">88 FM</text>
+                </svg>`,
+            tlv102: `
+                <svg viewBox="0 0 100 100" class="w-full h-full">
+                    <rect width="100" height="100" rx="20" fill="#EC4899"/>
+                    <text x="50" y="48" text-anchor="middle" fill="#FFFFFF" font-family="Rubik, sans-serif" font-weight="900" font-size="32">102</text>
+                    <text x="50" y="68" text-anchor="middle" fill="#FCE7F3" font-family="Rubik, sans-serif" font-weight="800" font-size="14">רדיו ת״א</text>
+                    <text x="50" y="88" text-anchor="middle" fill="#FFFFFF" font-family="Rubik, sans-serif" font-weight="900" font-size="12">FM</text>
+                </svg>`,
+            lev91: `
+                <svg viewBox="0 0 100 100" class="w-full h-full">
+                    <rect width="100" height="100" rx="20" fill="#E11D48"/>
+                    <path d="M50 76 C50 76 20 56 20 35 C20 22 32 16 43 24 C47 27 50 31 50 31 C50 31 53 27 57 24 C68 16 80 22 80 35 C80 56 50 76 50 76 Z" fill="#FFFFFF"/>
+                    <text x="50" y="53" text-anchor="middle" fill="#E11D48" font-family="Rubik, sans-serif" font-weight="900" font-size="25">91</text>
+                    <text x="50" y="92" text-anchor="middle" fill="#FFE4E6" font-family="Rubik, sans-serif" font-weight="800" font-size="12">לב המדינה</text>
+                </svg>`,
+            kan_kol_hamusica: `
+                <svg viewBox="0 0 100 100" class="w-full h-full">
+                    <rect width="100" height="100" rx="20" fill="#B45309"/>
+                    <text x="50" y="34" text-anchor="middle" fill="#FEF3C7" font-family="Rubik, sans-serif" font-weight="900" font-size="18">כאן</text>
+                    <text x="50" y="62" text-anchor="middle" fill="#FFFFFF" font-family="Rubik, sans-serif" font-weight="900" font-size="28">🎵</text>
+                    <text x="50" y="86" text-anchor="middle" fill="#FDE68A" font-family="Rubik, sans-serif" font-weight="800" font-size="12">קול המוסיקה</text>
+                </svg>`,
+            radio_haifa: `
+                <svg viewBox="0 0 100 100" class="w-full h-full">
+                    <rect width="100" height="100" rx="20" fill="#0D9488"/>
+                    <text x="50" y="45" text-anchor="middle" fill="#FFFFFF" font-family="Rubik, sans-serif" font-weight="900" font-size="24">107.5</text>
+                    <text x="50" y="70" text-anchor="middle" fill="#CCFBF1" font-family="Rubik, sans-serif" font-weight="900" font-size="18">חיפה</text>
+                    <text x="50" y="89" text-anchor="middle" fill="#FFFFFF" font-family="Rubik, sans-serif" font-weight="700" font-size="11">רדיו חיפה</text>
+                </svg>`,
+            radio_darom: `
+                <svg viewBox="0 0 100 100" class="w-full h-full">
+                    <rect width="100" height="100" rx="20" fill="#EA580C"/>
+                    <circle cx="50" cy="42" r="22" fill="#FDE047"/>
+                    <text x="50" y="49" text-anchor="middle" fill="#9A3412" font-family="Rubik, sans-serif" font-weight="900" font-size="22">97</text>
+                    <text x="50" y="84" text-anchor="middle" fill="#FFFFFF" font-family="Rubik, sans-serif" font-weight="900" font-size="16">רדיו דרום</text>
+                </svg>`
+        };
+
+        // 12 Real Israeli Radio Stations (2 pages of 6 huge buttons)
+        const STATIONS = [
+            // Page 1
+            {
+                id: 'galgalatz',
+                name: 'גלגלצ',
+                desc: '91.8FM • מוזיקה ודיווחים',
+                searchQuery: 'Galgalatz',
+                logoUrl: 'https://upload.wikimedia.org/wikipedia/he/thumb/7/7d/Glgltz_logo.svg/240px-Glgltz_logo.svg.png',
+                streams: [
+                    'https://glzwizzlv.bynetcdn.com/glglz_mp3',
+                    'https://glzizzlv.bynetcdn.com/glglz_mp3'
+                ]
+            },
+            {
+                id: 'kan_bet',
+                name: 'כאן ב׳',
+                desc: '95.5FM • חדשות ואקטואליה',
+                searchQuery: 'Kan Bet',
+                logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/19/Kan_Bet_Logo.svg/240px-Kan_Bet_Logo.svg.png',
+                streams: [
+                    'https://kanliveicy.media.kan.org.il/icy/kanbet_mp3',
+                    'https://25583.live.streamtheworld.com/KAN_BET.mp3'
+                ]
+            },
+            {
+                id: 'glz',
+                name: 'גלי צה״ל',
+                desc: '96.6FM • יומני חדשות',
+                searchQuery: 'Galei Zahal',
+                logoUrl: 'https://upload.wikimedia.org/wikipedia/he/thumb/6/62/Glz_logo.svg/240px-Glz_logo.svg.png',
+                streams: [
+                    'https://glzwizzlv.bynetcdn.com/glz_mp3',
+                    'https://glzizzlv.bynetcdn.com/glz_mp3'
+                ]
+            },
+            {
+                id: 'kan_gimel',
+                name: 'כאן גימל',
+                desc: '97.8FM • מוזיקה ישראלית',
+                searchQuery: 'Kan Gimel',
+                logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c8/Kan_Gimel_Logo.svg/240px-Kan_Gimel_Logo.svg.png',
+                streams: [
+                    'https://kanliveicy.media.kan.org.il/icy/kangimmel_mp3',
+                    'https://25583.live.streamtheworld.com/KAN_GIMMEL.mp3'
+                ]
+            },
+            {
+                id: 'eco99',
+                name: 'אקו 99FM',
+                desc: '99FM • מוזיקה נעימה',
+                searchQuery: 'Eco 99',
+                logoUrl: 'https://upload.wikimedia.org/wikipedia/he/thumb/8/87/Eco99fm.svg/240px-Eco99fm.svg.png',
+                streams: [
+                    'https://eco01.mediacast.co.il/ecolive/99fm_aac/icecast.audio',
+                    'https://eco-live.mediacast.co.il/99fm_aac'
+                ]
+            },
+            {
+                id: 'radio103',
+                name: 'רדיו 103FM',
+                desc: '103FM • תוכניות ואקטואליה',
+                searchQuery: '103FM',
+                logoUrl: 'https://upload.wikimedia.org/wikipedia/he/thumb/0/03/103fm_logo.svg/240px-103fm_logo.svg.png',
+                streams: [
+                    'https://cdn.cybercdn.live/103FM/Live/icecast.audio',
+                    'https://103fm.live.streamgates.net/103fm_live/103fm/icecast.audio'
+                ]
+            },
+            // Page 2
+            {
+                id: 'kan_88',
+                name: 'כאן 88',
+                desc: '88FM • איכות, ג׳אז ורוק',
+                searchQuery: 'Kan 88',
+                logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/59/Kan_88_Logo.svg/240px-Kan_88_Logo.svg.png',
+                streams: [
+                    'https://kanliveicy.media.kan.org.il/icy/kan88_mp3',
+                    'https://25583.live.streamtheworld.com/KAN_88.mp3'
+                ]
+            },
+            {
+                id: 'tlv102',
+                name: 'רדיו תל אביב',
+                desc: '102FM • מוזיקה ובידור',
+                searchQuery: '102FM',
+                logoUrl: 'https://upload.wikimedia.org/wikipedia/he/thumb/4/4b/102fm_logo.png/240px-102fm_logo.png',
+                streams: [
+                    'https://102.livecdn.biz/102fm_aac',
+                    'https://102.livecdn.biz/102fm_mp3'
+                ]
+            },
+            {
+                id: 'lev91',
+                name: 'לב המדינה',
+                desc: '91FM • שמח וים תיכוני',
+                searchQuery: 'Lev Hamedina',
+                logoUrl: 'https://upload.wikimedia.org/wikipedia/he/thumb/9/9e/Radio91fm.png/240px-Radio91fm.png',
+                streams: [
+                    'https://acdn.streamgates.net/91fm',
+                    'https://91fm.streamgates.net/Lev91/Live/icecast.audio'
+                ]
+            },
+            {
+                id: 'kan_kol_hamusica',
+                name: 'קול המוסיקה',
+                desc: '91.3FM • מוסיקה קלאסית',
+                searchQuery: 'Kan Kol HaMusica',
+                logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/Kan_Kol_HaMusica_Logo.svg/240px-Kan_Kol_HaMusica_Logo.svg.png',
+                streams: [
+                    'https://kanliveicy.media.kan.org.il/icy/kankolhamusica_mp3',
+                    'https://25583.live.streamtheworld.com/KAN_KOL_HAMUSICA.mp3'
+                ]
+            },
+            {
+                id: 'radio_haifa',
+                name: 'רדיו חיפה',
+                desc: '107.5FM • הצפון והקריות',
+                searchQuery: 'Radio Haifa',
+                logoUrl: 'https://upload.wikimedia.org/wikipedia/he/thumb/2/25/Radio_Haifa_logo.png/240px-Radio_Haifa_logo.png',
+                streams: [
+                    'https://1075.livecdn.biz/radiohaifa',
+                    'https://1075.livecdn.biz/radiohaifa_aac'
+                ]
+            },
+            {
+                id: 'radio_darom',
+                name: 'רדיו דרום',
+                desc: '97FM • קול הדרום',
+                searchQuery: 'Radio Darom',
+                logoUrl: 'https://upload.wikimedia.org/wikipedia/he/thumb/d/d3/Radio_Darom_Logo.png/240px-Radio_Darom_Logo.png',
+                streams: [
+                    'https://cdn.cybercdn.live/Darom_97FM/Live/icecast.audio',
+                    'https://darom97fm.streamgates.net/Darom97fm/Live/icecast.audio'
+                ]
+            }
+        ];
+
+        // =====================================================
+        // 1B. REAL ISRAELI LIVE TV CHANNELS (HLS .m3u8)
+        // =====================================================
+        const TV_CHANNELS = [
+            {
+                id: 'kan11',
+                name: 'כאן 11',
+                desc: 'שידור חי • תאגיד השידור',
+                badgeBg: '#0284C7',
+                badgeText: 'כאן 11',
+                streams: [
+                    'https://kan11.media.kan.org.il/hls/live/2024514/2024514/master.m3u8',
+                    'https://kan11w.media.kan.org.il/hls/live/2024514/2024514/master.m3u8'
+                ],
+                officialUrl: 'https://www.kan.org.il/live/'
+            },
+            {
+                id: 'kan23',
+                name: 'כאן חינוכית 23',
+                desc: 'שידור חי • תוכניות ומשפחה',
+                badgeBg: '#16A34A',
+                badgeText: '23',
+                streams: [
+                    'https://kan23.media.kan.org.il/hls/live/2024691/2024691/master.m3u8',
+                    'https://kan23w.media.kan.org.il/hls/live/2024691/2024691/master.m3u8'
+                ],
+                officialUrl: 'https://www.kankids.org.il/live/'
+            },
+            {
+                id: 'knesset99',
+                name: 'ערוץ הכנסת 99',
+                desc: 'שידור חי ממשכן הכנסת',
+                badgeBg: '#1E3A8A',
+                badgeText: '99',
+                streams: [
+                    'https://contact.gostreaming.tv/Knesset/myStream/playlist.m3u8',
+                    'https://knesset.gostreaming.tv/Knesset/myStream/playlist.m3u8'
+                ],
+                officialUrl: 'https://www.knesset.tv/live/'
+            },
+            {
+                id: 'ch14',
+                name: 'עכשיו 14',
+                desc: 'חדשות ותוכניות אקטואליה',
+                badgeBg: '#DC2626',
+                badgeText: '14',
+                streams: [
+                    'https://r.il.cdn-redge.media/livehls/oil/ch14/live/ch14/live.livx/playlist.m3u8',
+                    'https://now14.gostreaming.tv/live/myStream/playlist.m3u8'
+                ],
+                officialUrl: 'https://www.now14.co.il/live/'
+            },
+            {
+                id: 'keshet12',
+                name: 'קשת 12',
+                desc: 'חדשות 12 ושידורי קשת',
+                badgeBg: '#2563EB',
+                badgeText: '12',
+                streams: [
+                    'https://mako-streaming.akamaized.net/hls/live/2033791/k12/master.m3u8'
+                ],
+                officialUrl: 'https://www.mako.co.il/mako-vod-live-tv/VOD-6540b8dcb64fd31006.htm'
+            },
+            {
+                id: 'reshet13',
+                name: 'רשת 13',
+                desc: 'חדשות 13 ושידורי רשת',
+                badgeBg: '#7C3AED',
+                badgeText: '13',
+                streams: [
+                    'https://d18b0e6mopany4.cloudfront.net/out/v1/08bc71cf0a0f4712b6b03c732b0e6d25/index.m3u8',
+                    'https://reshet.gostreaming.tv/reshet-live/myStream/playlist.m3u8'
+                ],
+                officialUrl: 'https://13tv.co.il/live/'
+            },
+            {
+                id: 'makan33',
+                name: 'מכאן 33',
+                desc: 'שידורי תאגיד השידור',
+                badgeBg: '#0D9488',
+                badgeText: '33',
+                streams: [
+                    'https://makan.media.kan.org.il/hls/live/2024680/2024680/master.m3u8'
+                ],
+                officialUrl: 'https://www.makan.org.il/live/'
+            }
+        ];
+
+        const RECIPES = [
+            {
+                id: 'shakshuka',
+                title: 'שקשוקה ביתית',
+                emoji: '🍳',
+                ingredients: [
+                    '5 ביצים',
+                    '5 עגבניות בשלות קצוצות',
+                    '1 פלפל אדום חתוך לקוביות',
+                    '3 שיני שום כתושות',
+                    'כף רסק עגבניות',
+                    '3 כפות שמן זית',
+                    'כפית פפריקה מתוקה ומלח'
+                ],
+                steps: [
+                    'מחממים שמן זית במחבת רחבה ומטגנים את הפלפל והשום כ-4 דקות.',
+                    'מוסיפים עגבניות קצוצות, רסק עגבניות, פפריקה ומלח ומבשלים 10 דקות לרוטב סמיך.',
+                    'יוצרים גומות ברוטב ושוברים לתוכן את הביצים.',
+                    'מכסים את המחבת ומבשלים על אש קטנה כ-7 דקות עד שהביצים מוכנות.'
+                ]
+            },
+            {
+                id: 'lentil_soup',
+                title: 'מרק עדשים כתומות',
+                emoji: '🥣',
+                ingredients: [
+                    'כוס וחצי עדשים כתומות שטופות',
+                    '1 בצל גדול קצוץ',
+                    '2 גזרים קלופים ומגוררים',
+                    '3 כפות שמן זית',
+                    'כפית כמון, חצי כפית כורכום ומלח',
+                    '6 כוסות מים רותחים'
+                ],
+                steps: [
+                    'מחממים שמן זית בסיר ומטגנים את הבצל עד להזהבה קלה.',
+                    'מוסיפים את הגזר המגורר והעדשים השטופות ומערבבים דקה.',
+                    'מוסיפים מים רותחים ותבלינים ומביאים לרתיחה.',
+                    'מנמיכים את האש ומבשלים עם מכסה כ-25 דקות עד שהעדשים רכות.'
+                ]
+            },
+            {
+                id: 'pasta_tomato',
+                title: 'פסטה ברוטב עגבניות',
+                emoji: '🍝',
+                ingredients: [
+                    'חבילת פסטה (500 גרם)',
+                    'קופסת עגבניות מרוסקות (400 גרם)',
+                    '2 כפות רסק עגבניות',
+                    '3 שיני שום כתושות',
+                    '3 כפות שמן זית',
+                    'כפית מלח, חצי כפית סוכר ועלי בזיליקים'
+                ],
+                steps: [
+                    'מבשלים את הפסטה בסיר גדול עם מים רותחים וכפית מלח לפי ההוראות, ומסננים.',
+                    'בסיר נפרד מחממים שמן זית ומטגנים קלות את השום כדקה.',
+                    'מוסיפים עגבניות מרוסקות, רסק, מלח, סוכר וחצי כוס מים ומבשלים 10 דקות.',
+                    'מערבבים את הפסטה המוכנה בתוך הרוטב החם ומגישים.'
+                ]
+            },
+            {
+                id: 'corn_pie',
+                title: 'פשטידת תירס קלה',
+                emoji: '🌽',
+                ingredients: [
+                    'קופסת שימורי תירס מסוננת מנוזלים',
+                    '3 ביצים',
+                    'גביע קוטג׳ או גבינה לבנה (250 גרם)',
+                    '100 גרם גבינה צהובה מגוררת',
+                    '3 כפות גדושות קמח תופח',
+                    'חצי כפית מלח ומעט פלפל שחור'
+                ],
+                steps: [
+                    'מחממים תנור מראש ל-180 מעלות ומשמנים תבנית אפייה בינונית.',
+                    'בקערה גדולה מערבבים יחד את התירס, הביצים, הקוטג׳ והגבינה הצהובה.',
+                    'מוסיפים את הקמח והמלח ומערבבים היטב בכף.',
+                    'יוצקים לתבנית ואופים כ-35 דקות עד שהפשטידה שחומה ויציבה.'
+                ]
+            },
+            {
+                id: 'quinoa_salad',
+                title: 'סלט קינואה עשיר',
+                emoji: '🥗',
+                ingredients: [
+                    '1 כוס קינואה שטופה',
+                    '2 מלפפונים חתוכים לקוביות קטנות',
+                    'חופן פטרוזיליה ונענע קצוצים',
+                    'חופן חמוציות ושקדים קצוצים',
+                    'מיץ מלימון שלם',
+                    '3 כפות שמן זית וכפית מלח'
+                ],
+                steps: [
+                    'מבשלים את הקינואה בסיר עם כוס וחצי מים רותחים על אש קטנה כ-15 דקות ומצננים.',
+                    'מעבירים את הקינואה לקערה גדולה ומוסיפים את המלפפונים ועשבי התיבול.',
+                    'מוסיפים את החמוציות והשקדים הקצוצים.',
+                    'מתבלים במיץ לימון, שמן זית ומלח, מערבבים ומגישים.'
+                ]
+            },
+            {
+                id: 'orange_cake',
+                title: 'עוגת תפוזים אוורירית',
+                emoji: '🍊',
+                ingredients: [
+                    '4 ביצים',
+                    '1 כוס סוכר',
+                    'שלושת רבעי כוס שמן',
+                    '1 כוס מיץ תפוזים',
+                    '2 כוסות קמח תופח',
+                    'שקית סוכר וניל'
+                ],
+                steps: [
+                    'מחממים תנור ל-170 מעלות ומשמנים תבנית עגולה או שתי תבניות אינגליש קייק.',
+                    'טורפים בקערה את הביצים עם הסוכר וסוכר הווניל במשך דקה.',
+                    'מוסיפים שמן ומיץ תפוזים ומערבבים.',
+                    'מוסיפים את הקמח ומערבבים רק עד לקבלת בלילה חלקה.',
+                    'אופים כ-35 דקות עד שקיסם במרכז העוגה יוצא יבש.'
+                ]
+            }
+        ];
+
+        // =====================================================
+        // 2. STATE VARIABLES
+        // =====================================================
+        let activeScreen = 'home';
+        let activeStationId = null;
+        let isRadioPlaying = false;
+        let radioPage = 0; // 0 = first 6 stations, 1 = next 6 stations
+        let radioVolume = 0.85;
+        let hls = null;
+        let fallbackSynthTimer = null;
+        let audioCtx = null;
+
+        // Live TV State
+        let activeTvChannelId = null;
+        let isTvPlaying = false;
+        let tvHls = null;
+
+        // Voice AI State
+        let speechRecognizer = null;
+        let isListening = false;
+
+        // Recipes State
+        let currentRecipe = null;
+        let checkedSet = new Set();
+
+        // Screensaver State
+        let idleSeconds = 0;
+        let screensaverOpen = false;
+
+        // =====================================================
+        // 3. INITIALIZATION & CLOCK
+        // =====================================================
+        window.onload = function() {
+            updateClock();
+            setInterval(updateClock, 1000);
+
+            renderRadioGrid();
+            enrichStationLogosFromApi();
+            renderTvChannelsList();
+            renderRecipesGrid();
+            setupVoiceRecognition();
+            setupScreensaverTimers();
+        };
+
+        function updateClock() {
+            const now = new Date();
+            const hh = String(now.getHours()).padStart(2, '0');
+            const mm = String(now.getMinutes()).padStart(2, '0');
+            const timeText = `${hh}:${mm}`;
+            const dayText = now.toLocaleDateString('he-IL', { weekday: 'long' });
+
+            document.getElementById('clockTime').textContent = timeText;
+            document.getElementById('clockDay').textContent = dayText;
+            document.getElementById('ssClockTime').textContent = timeText;
+            document.getElementById('ssClockDay').textContent = dayText;
+        }
+
+        // =====================================================
+        // 4. SIMPLE SCREEN NAVIGATION
+        // =====================================================
+        function navigateTo(screen) {
+            activeScreen = screen;
+            const screens = ['home', 'radio', 'tv', 'ai', 'recipes'];
+            screens.forEach(s => {
+                const el = document.getElementById(`screen-${s}`);
+                if (!el) return;
+                if (s === screen) {
+                    el.classList.remove('hidden');
+                    if (s === 'tv') {
+                        el.classList.add('grid');
+                    } else if (s !== 'home') {
+                        el.classList.add('flex');
+                    }
+                } else {
+                    el.classList.add('hidden');
+                    el.classList.remove('flex', 'grid');
+                }
+            });
+
+            // Toggle Header Left Button (Screensaver on Home vs Giant Back to Home)
+            const btnSS = document.getElementById('btnScreensaverPreview');
+            const btnBack = document.getElementById('btnBackToHome');
+
+            if (screen === 'home') {
+                btnSS.classList.remove('hidden');
+                btnBack.classList.add('hidden');
+            } else {
+                btnSS.classList.add('hidden');
+                btnBack.classList.remove('hidden');
+            }
+
+            // If entering Recipes, always start on the 6-recipe grid
+            if (screen === 'recipes') {
+                backToRecipesList();
+            }
+        }
+
+        function stopAllMedia() {
+            stopRadio();
+            stopTv();
+        }
+
+        function updateHeaderMediaPill() {
+            const pill = document.getElementById('headerRadioPill');
+            const pillIcon = document.getElementById('headerMediaIcon');
+            const pillText = document.getElementById('headerRadioText');
+
+            if (isRadioPlaying && activeStationId) {
+                const st = STATIONS.find(s => s.id === activeStationId);
+                pill.classList.remove('hidden');
+                pill.classList.add('flex');
+                pillIcon.textContent = '📻';
+                pillText.textContent = `רדיו: ${st ? st.name : ''}`;
+            } else if (isTvPlaying && activeTvChannelId) {
+                const ch = TV_CHANNELS.find(c => c.id === activeTvChannelId);
+                pill.classList.remove('hidden');
+                pill.classList.add('flex');
+                pillIcon.textContent = '📺';
+                pillText.textContent = `טלוויזיה: ${ch ? ch.name : ''}`;
+            } else {
+                pill.classList.add('hidden');
+                pill.classList.remove('flex');
+            }
+        }
+
+        // =====================================================
+        // 5. ISRAELI RADIO LOGIC (12 STATIONS + REAL LOGOS)
+        // =====================================================
+        async function enrichStationLogosFromApi() {
+            // Dynamically fetch official station favicons from Radio-Browser API if available
+            for (const station of STATIONS) {
+                try {
+                    const res = await fetch(`https://de1.api.radio-browser.info/json/stations/search?name=${encodeURIComponent(station.searchQuery)}&countrycode=IL&limit=3`);
+                    if (res.ok) {
+                        const items = await res.json();
+                        const withIcon = items.find(i => i.favicon && i.favicon.startsWith('http'));
+                        if (withIcon) {
+                            station.apiFavicon = withIcon.favicon;
+                        }
+                    }
+                } catch (e) {}
+            }
+            renderRadioGrid();
+        }
+
+        function toggleRadioPage() {
+            radioPage = radioPage === 0 ? 1 : 0;
+            renderRadioGrid();
+        }
+
+        function renderRadioGrid() {
+            const grid = document.getElementById('radioStationsGrid');
+            grid.innerHTML = '';
+
+            const pageStations = STATIONS.slice(radioPage * 6, (radioPage + 1) * 6);
+            const pageBtnLabel = document.getElementById('radioPageBtnLabel');
+            if (pageBtnLabel) {
+                pageBtnLabel.textContent = radioPage === 0 ? 'עוד תחנות (1/2) ⬅️' : '➡️ תחנות קודמות (2/2)';
+            }
+
+            pageStations.forEach(station => {
+                const isPlayingThis = isRadioPlaying && activeStationId === station.id;
+                const btn = document.createElement('button');
+                btn.onclick = () => playStation(station.id);
+
+                btn.className = isPlayingThis
+                    ? 'big-touch-btn rounded-3xl bg-orange-500 text-white p-4 shadow-xl border-8 border-orange-900 flex items-center justify-start gap-4 text-right relative'
+                    : 'big-touch-btn rounded-3xl bg-white hover:bg-orange-50 text-slate-900 p-4 shadow-md border-4 border-slate-300 border-b-8 flex items-center justify-start gap-4 text-right relative';
+
+                const svgMarkup = STATION_LOGOS_SVG[station.id] || '';
+                const imgSource = station.apiFavicon || station.logoUrl || '';
+
+                btn.innerHTML = `
+                    <div class="station-logo-wrap relative">
+                        <div class="w-full h-full">${svgMarkup}</div>
+                        ${imgSource ? `<img src="${imgSource}" alt="${station.name}" class="absolute inset-0 w-full h-full object-contain bg-white p-1" onerror="this.remove()" />` : ''}
+                    </div>
+                    <div class="flex-1 overflow-hidden">
+                        ${isPlayingThis ? `<div class="inline-block bg-slate-900 text-amber-300 text-base font-black px-3 py-0.5 rounded-full mb-1">מנגן עכשיו 🔊</div>` : ''}
+                        <div class="text-3xl md:text-4xl font-black truncate">${station.name}</div>
+                        <div class="text-lg font-bold truncate ${isPlayingThis ? 'text-orange-100' : 'text-slate-500'}">${station.desc}</div>
+                    </div>
+                `;
+                grid.appendChild(btn);
+            });
+
+            updateHeaderMediaPill();
+            updateScreensaverRadioState();
+        }
+
+        async function playStation(stationId) {
+            const station = STATIONS.find(s => s.id === stationId);
+            if (!station) return;
+
+            // Ensure TV is stopped when Radio starts
+            if (isTvPlaying) stopTv();
+
+            stopRadioInternal();
+            activeStationId = stationId;
+            isRadioPlaying = true;
+            renderRadioGrid();
+
+            // 1. Try direct URLs
+            let ok = false;
+            for (const url of station.streams) {
+                ok = await attemptStreamUrl(url);
+                if (ok) break;
+            }
+
+            // 2. Fallback to RadioBrowser API search
+            if (!ok) {
+                try {
+                    const res = await fetch(`https://de1.api.radio-browser.info/json/stations/search?name=${encodeURIComponent(station.searchQuery)}&limit=4`);
+                    if (res.ok) {
+                        const list = await res.json();
+                        for (const item of list) {
+                            if (item.url_resolved) {
+                                ok = await attemptStreamUrl(item.url_resolved);
+                                if (ok) break;
+                            }
+                        }
+                    }
+                } catch (e) {}
+            }
+
+            // 3. Pleasant gentle melody fallback if blocked by network/CORS
+            if (!ok && isRadioPlaying) {
+                startPleasantFallbackMelody();
+            }
+        }
+
+        function attemptStreamUrl(url) {
+            return new Promise((resolve) => {
+                const audio = document.getElementById('radioAudio');
+                audio.volume = radioVolume;
+                let done = false;
+
+                const finish = (result) => {
+                    if (!done) {
+                        done = true;
+                        clearTimeout(timer);
+                        audio.onplaying = null;
+                        audio.onerror = null;
+                        resolve(result);
+                    }
+                };
+
+                const timer = setTimeout(() => finish(false), 4000);
+
+                if (url.includes('.m3u8') && window.Hls && Hls.isSupported()) {
+                    if (hls) hls.destroy();
+                    hls = new Hls();
+                    hls.loadSource(url);
+                    hls.attachMedia(audio);
+                    hls.on(Hls.Events.MANIFEST_PARSED, () => {
+                        audio.play().then(() => finish(true)).catch(() => finish(false));
+                    });
+                    hls.on(Hls.Events.ERROR, () => finish(false));
+                } else {
+                    audio.src = url;
+                    audio.onplaying = () => finish(true);
+                    audio.onerror = () => finish(false);
+                    audio.play().catch(() => finish(false));
+                }
+            });
+        }
+
+        function startPleasantFallbackMelody() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+
+            const freqs = [261.63, 329.63, 392.00, 440.00, 523.25];
+            let idx = 0;
+
+            fallbackSynthTimer = setInterval(() => {
+                if (!isRadioPlaying) return;
+                try {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freqs[idx % freqs.length], audioCtx.currentTime);
+                    idx++;
+
+                    gain.gain.setValueAtTime(0.001, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(Math.max(0.01, radioVolume * 0.08), audioCtx.currentTime + 0.15);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 1.1);
+
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 1.15);
+                } catch (e) {}
+            }, 950);
+        }
+
+        function stopRadioInternal() {
+            const audio = document.getElementById('radioAudio');
+            try {
+                audio.pause();
+                audio.removeAttribute('src');
+                audio.load();
+            } catch (e) {}
+
+            if (hls) {
+                hls.destroy();
+                hls = null;
+            }
+            if (fallbackSynthTimer) {
+                clearInterval(fallbackSynthTimer);
+                fallbackSynthTimer = null;
+            }
+        }
+
+        function stopRadio() {
+            isRadioPlaying = false;
+            activeStationId = null;
+            stopRadioInternal();
+            renderRadioGrid();
+        }
+
+        function changeVolume(delta) {
+            radioVolume = Math.min(1, Math.max(0.1, radioVolume + delta));
+            document.getElementById('radioAudio').volume = radioVolume;
+            const tvVideo = document.getElementById('tvVideoElement');
+            if (tvVideo) tvVideo.volume = radioVolume;
+        }
+
+        // =====================================================
+        // 5B. ISRAELI LIVE TV LOGIC (HLS.JS + FALLBACKS)
+        // =====================================================
+        function renderTvChannelsList() {
+            const list = document.getElementById('tvChannelsList');
+            if (!list) return;
+            list.innerHTML = '';
+
+            TV_CHANNELS.forEach(ch => {
+                const isActive = isTvPlaying && activeTvChannelId === ch.id;
+                const btn = document.createElement('button');
+                btn.onclick = () => playTvChannel(ch.id);
+
+                btn.className = isActive
+                    ? 'big-touch-btn w-full rounded-2xl bg-purple-600 text-white p-3.5 shadow-lg border-4 border-purple-950 flex items-center gap-4 text-right'
+                    : 'big-touch-btn w-full rounded-2xl bg-white hover:bg-purple-50 text-slate-900 p-3.5 shadow border-3 border-slate-300 border-b-6 flex items-center gap-4 text-right';
+
+                btn.innerHTML = `
+                    <div class="tv-logo-wrap font-black text-white text-2xl" style="background:${ch.badgeBg}">
+                        ${ch.badgeText}
+                    </div>
+                    <div class="flex-1 overflow-hidden">
+                        <div class="text-2xl md:text-3xl font-black truncate">${ch.name}</div>
+                        <div class="text-base font-bold truncate ${isActive ? 'text-purple-100' : 'text-slate-500'}">${ch.desc}</div>
+                    </div>
+                    <span class="text-2xl">${isActive ? '🔊' : '▶️'}</span>
+                `;
+                list.appendChild(btn);
+            });
+
+            updateHeaderMediaPill();
+        }
+
+        async function playTvChannel(channelId) {
+            const ch = TV_CHANNELS.find(c => c.id === channelId);
+            if (!ch) return;
+
+            // Stop Radio first so audio never clashes
+            if (isRadioPlaying) stopRadio();
+
+            stopTvInternal();
+            activeTvChannelId = channelId;
+            isTvPlaying = true;
+            renderTvChannelsList();
+
+            const overlay = document.getElementById('tvOverlayState');
+            const overlayIcon = document.getElementById('tvOverlayIcon');
+            const overlayTitle = document.getElementById('tvOverlayTitle');
+            const overlaySub = document.getElementById('tvOverlaySubtitle');
+            const extBtn = document.getElementById('tvExternalLinkBtn');
+            const activeBadge = document.getElementById('tvActiveBadge');
+            const activeBadgeText = document.getElementById('tvActiveBadgeText');
+
+            overlay.classList.remove('hidden');
+            overlay.classList.add('flex');
+            extBtn.classList.add('hidden');
+            extBtn.classList.remove('inline-flex');
+
+            overlayIcon.textContent = '⏳';
+            overlayTitle.textContent = `טוען שידור חי: ${ch.name}...`;
+            overlaySub.textContent = 'אנא המתינו מספר שניות לחיבור השידור';
+
+            let loadedOk = false;
+            for (const streamUrl of ch.streams) {
+                loadedOk = await attemptTvHlsStream(streamUrl);
+                if (loadedOk) break;
+            }
+
+            if (loadedOk) {
+                overlay.classList.add('hidden');
+                overlay.classList.remove('flex');
+                activeBadge.classList.remove('hidden');
+                activeBadge.classList.add('flex');
+                activeBadgeText.textContent = `שידור חי • ${ch.name}`;
+            } else {
+                overlayIcon.textContent = '📺';
+                overlayTitle.textContent = `שידור ישיר של ${ch.name}`;
+                overlaySub.textContent = 'הערוץ דורש פתיחה בנגן הרשמי של הערוץ בלחיצה אחת:';
+                extBtn.href = ch.officialUrl;
+                document.getElementById('tvExternalLinkText').textContent = `לצפייה ב-${ch.name} בשידור חי לחצו כאן`;
+                extBtn.classList.remove('hidden');
+                extBtn.classList.add('inline-flex');
+            }
+        }
+
+        function attemptTvHlsStream(url) {
+            return new Promise((resolve) => {
+                const video = document.getElementById('tvVideoElement');
+                video.volume = radioVolume;
+                let settled = false;
+
+                const finish = (ok) => {
+                    if (!settled) {
+                        settled = true;
+                        clearTimeout(timeoutId);
+                        video.onplaying = null;
+                        video.onerror = null;
+                        resolve(ok);
+                    }
+                };
+
+                const timeoutId = setTimeout(() => finish(false), 6000);
+
+                if (window.Hls && Hls.isSupported()) {
+                    if (tvHls) tvHls.destroy();
+                    tvHls = new Hls({ enableWorker: true });
+                    tvHls.loadSource(url);
+                    tvHls.attachMedia(video);
+                    tvHls.on(Hls.Events.MANIFEST_PARSED, () => {
+                        video.play().then(() => finish(true)).catch(() => finish(false));
+                    });
+                    tvHls.on(Hls.Events.ERROR, (ev, data) => {
+                        if (data.fatal) finish(false);
+                    });
+                } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                    video.src = url;
+                    video.onplaying = () => finish(true);
+                    video.onerror = () => finish(false);
+                    video.play().catch(() => finish(false));
+                } else {
+                    finish(false);
+                }
+            });
+        }
+
+        function stopTvInternal() {
+            const video = document.getElementById('tvVideoElement');
+            try {
+                video.pause();
+                video.removeAttribute('src');
+                video.load();
+            } catch (e) {}
+
+            if (tvHls) {
+                tvHls.destroy();
+                tvHls = null;
+            }
+        }
+
+        function stopTv() {
+            isTvPlaying = false;
+            activeTvChannelId = null;
+            stopTvInternal();
+
+            const overlay = document.getElementById('tvOverlayState');
+            const activeBadge = document.getElementById('tvActiveBadge');
+            const extBtn = document.getElementById('tvExternalLinkBtn');
+            if (overlay) {
+                overlay.classList.remove('hidden');
+                overlay.classList.add('flex');
+                document.getElementById('tvOverlayIcon').textContent = '📺';
+                document.getElementById('tvOverlayTitle').textContent = 'בחרו ערוץ טלוויזיה מימין';
+                document.getElementById('tvOverlaySubtitle').textContent = 'לחיצה על כל ערוץ תפעיל את השידור החי מיד';
+            }
+            if (activeBadge) {
+                activeBadge.classList.add('hidden');
+                activeBadge.classList.remove('flex');
+            }
+            if (extBtn) {
+                extBtn.classList.add('hidden');
+                extBtn.classList.remove('inline-flex');
+            }
+
+            renderTvChannelsList();
+        }
+
+        function toggleTvFullscreen() {
+            const container = document.getElementById('tvPlayerContainer');
+            const video = document.getElementById('tvVideoElement');
+            try {
+                if (document.fullscreenElement) {
+                    document.exitFullscreen();
+                } else if (video && video.requestFullscreen) {
+                    video.requestFullscreen();
+                } else if (container && container.requestFullscreen) {
+                    container.requestFullscreen();
+                }
+            } catch (e) {}
+        }
+
+        // =====================================================
+        // 6. VOICE-ONLY AI ASSISTANT (SPEECH -> GEMINI -> TTS)
+        // =====================================================
+        function setupVoiceRecognition() {
+            const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRec) return;
+
+            speechRecognizer = new SpeechRec();
+            speechRecognizer.lang = 'he-IL';
+            speechRecognizer.continuous = false;
+            speechRecognizer.interimResults = true;
+
+            speechRecognizer.onstart = () => {
+                isListening = true;
+                stopSpeaking();
+                const btn = document.getElementById('giantMicButton');
+                btn.classList.add('mic-listening-pulse', 'bg-red-600', 'border-red-900');
+                btn.classList.remove('bg-indigo-600', 'border-indigo-900');
+                document.getElementById('giantMicEmoji').textContent = '🔴';
+                document.getElementById('giantMicLabel').textContent = 'מקשיב...';
+                document.getElementById('aiMainDisplayText').textContent = '🔴 מקשיב... דברו עכשיו אל העוזר';
+            };
+
+            let capturedTranscript = '';
+
+            speechRecognizer.onresult = (event) => {
+                capturedTranscript = '';
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    capturedTranscript += event.results[i][0].transcript;
+                }
+                if (capturedTranscript.trim()) {
+                    document.getElementById('aiMainDisplayText').textContent = `"${capturedTranscript}"`;
+                }
+            };
+
+            speechRecognizer.onerror = () => {
+                resetMicVisuals();
+                document.getElementById('aiMainDisplayText').textContent = 'לא הצלחתי לשמוע. לחצו שוב על הכפתור ודברו בקול ברור.';
+            };
+
+            speechRecognizer.onend = () => {
+                resetMicVisuals();
+                const finalQuestion = capturedTranscript.trim();
+                capturedTranscript = '';
+                if (finalQuestion) {
+                    askGeminiByVoice(finalQuestion);
+                }
+            };
+        }
+
+        function resetMicVisuals() {
+            isListening = false;
+            const btn = document.getElementById('giantMicButton');
+            btn.classList.remove('mic-listening-pulse', 'bg-red-600', 'border-red-900');
+            btn.classList.add('bg-indigo-600', 'border-indigo-900');
+            document.getElementById('giantMicEmoji').textContent = '🎤';
+            document.getElementById('giantMicLabel').textContent = 'לחץ ודבר';
+        }
+
+        function toggleVoiceAssistant() {
+            stopSpeaking();
+
+            if (!speechRecognizer) {
+                document.getElementById('aiMainDisplayText').textContent = 'הדפדפן לא תומך במיקרופון. מדגים שאלה קולית לדוגמה...';
+                setTimeout(() => {
+                    askGeminiByVoice('כמה גרם יש בכוס קמח וכמה בכוס סוכר?');
+                }, 900);
+                return;
+            }
+
+            if (isListening) {
+                speechRecognizer.stop();
+            } else {
+                try {
+                    speechRecognizer.start();
+                } catch (e) {
+                    speechRecognizer.stop();
+                }
+            }
+        }
+
+        async function askGeminiByVoice(spokenText) {
+            const spokenBox = document.getElementById('aiUserSpokenBox');
+            const spokenSpan = document.getElementById('aiUserSpokenText');
+            const mainDisplay = document.getElementById('aiMainDisplayText');
+
+            spokenBox.classList.remove('hidden');
+            spokenSpan.textContent = spokenText;
+            mainDisplay.textContent = '⏳ חושב על תשובה...';
+
+            const systemInstruction = `אתה עוזר מטבח קולי פשוט וברור מאוד למבוגרים בישראל.
+ענה תמיד בעברית פשוטה, קצרה וברורה (עד 3 או 4 משפטים קצרים בלבד).
+אל תשתמש כלל בכוכביות (*) או בסימנים מיוחדים.`;
+
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: spokenText }] }],
+                        systemInstruction: { parts: [{ text: systemInstruction }] }
+                    })
+                });
+
+                const data = await response.json();
+                const rawReply = data?.candidates?.[0]?.content?.parts?.[0]?.text || 'סליחה, לא הצלחתי למצוא תשובה. נסו לשאול שוב.';
+                const cleanReply = rawReply.replace(/[*#]/g, '').trim();
+
+                mainDisplay.textContent = cleanReply;
+                readAloudHebrew(cleanReply);
+            } catch (err) {
+                mainDisplay.textContent = 'סליחה, הייתה בעיה בחיבור. לחצו על הכפתור ונסו שוב.';
+            }
+        }
+
+        async function readAloudHebrew(text) {
+            stopSpeaking();
+            const stopBtn = document.getElementById('btnStopReading');
+            stopBtn.classList.remove('hidden');
+            stopBtn.classList.add('inline-flex');
+
+            // 1. Try Gemini TTS for warm natural voice
+            try {
+                const ttsUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
+                const res = await fetch(ttsUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: `קרא בקול ברור ונעים בעברית: ${text}` }] }],
+                        generationConfig: {
+                            responseModalities: ["AUDIO"],
+                            speechConfig: {
+                                voiceConfig: { prebuiltVoiceConfig: { voiceName: "Kore" } }
+                            }
+                        }
+                    })
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    const part = data?.candidates?.[0]?.content?.parts?.[0];
+                    const b64 = part?.inlineData?.data;
+                    const mime = part?.inlineData?.mimeType || 'audio/L16;rate=24000';
+
+                    if (b64) {
+                        const rateMatch = mime.match(/rate=(\d+)/);
+                        const sampleRate = rateMatch ? parseInt(rateMatch[1], 10) : 24000;
+                        const wavBlob = pcm16ToWavBlob(b64, sampleRate);
+                        const ttsAudio = document.getElementById('ttsAudio');
+                        ttsAudio.src = URL.createObjectURL(wavBlob);
+                        ttsAudio.onended = () => hideStopReadingBtn();
+                        await ttsAudio.play();
+                        return;
+                    }
+                }
+            } catch (e) {}
+
+            // 2. Fallback to Browser SpeechSynthesis (he-IL)
+            if ('speechSynthesis' in window) {
+                const utter = new SpeechSynthesisUtterance(text);
+                utter.lang = 'he-IL';
+                utter.rate = 0.9;
+                utter.onend = () => hideStopReadingBtn();
+                utter.onerror = () => hideStopReadingBtn();
+                window.speechSynthesis.speak(utter);
+            } else {
+                hideStopReadingBtn();
+            }
+        }
+
+        function stopSpeaking() {
+            window.speechSynthesis?.cancel();
+            const ttsAudio = document.getElementById('ttsAudio');
+            try {
+                ttsAudio.pause();
+                ttsAudio.currentTime = 0;
+            } catch (e) {}
+            hideStopReadingBtn();
+        }
+
+        function hideStopReadingBtn() {
+            const stopBtn = document.getElementById('btnStopReading');
+            stopBtn.classList.add('hidden');
+            stopBtn.classList.remove('inline-flex');
+        }
+
+        function pcm16ToWavBlob(base64, sampleRate) {
+            const binary = window.atob(base64);
+            const bytes = new Uint8Array(binary.length);
+            for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+            const pcm16 = new Int16Array(bytes.buffer);
+
+            const buffer = new ArrayBuffer(44 + pcm16.length * 2);
+            const view = new DataView(buffer);
+            const writeStr = (off, s) => { for (let i = 0; i < s.length; i++) view.setUint8(off + i, s.charCodeAt(i)); };
+
+            writeStr(0, 'RIFF');
+            view.setUint32(4, 36 + pcm16.length * 2, true);
+            writeStr(8, 'WAVE');
+            writeStr(12, 'fmt ');
+            view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true);
+            view.setUint16(22, 1, true);
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, sampleRate * 2, true);
+            view.setUint16(32, 2, true);
+            view.setUint16(34, 16, true);
+            writeStr(36, 'data');
+            view.setUint32(40, pcm16.length * 2, true);
+
+            let offset = 44;
+            for (let i = 0; i < pcm16.length; i++, offset += 2) {
+                view.setInt16(offset, pcm16[i], true);
+            }
+            return new Blob([view], { type: 'audio/wav' });
+        }
+
+        // =====================================================
+        // 7. RECIPES LOGIC (2x3 Grid -> Clean Side-by-Side View)
+        // =====================================================
+        function renderRecipesGrid() {
+            const grid = document.getElementById('recipesGridView');
+            grid.innerHTML = '';
+
+            RECIPES.forEach(recipe => {
+                const btn = document.createElement('button');
+                btn.onclick = () => openRecipe(recipe.id);
+                btn.className = 'big-touch-btn rounded-3xl bg-white hover:bg-emerald-50 text-slate-900 p-6 shadow-md border-4 border-emerald-200 border-b-8 flex flex-col items-center justify-center gap-4 text-center';
+                btn.innerHTML = `
+                    <span class="text-7xl">${recipe.emoji}</span>
+                    <span class="text-3xl md:text-4xl font-black text-slate-900">${recipe.title}</span>
+                `;
+                grid.appendChild(btn);
+            });
+        }
+
+        function openRecipe(recipeId) {
+            const recipe = RECIPES.find(r => r.id === recipeId);
+            if (!recipe) return;
+
+            currentRecipe = recipe;
+            checkedSet.clear();
+
+            document.getElementById('recipesGridView').classList.add('hidden');
+            const singleView = document.getElementById('recipeSingleView');
+            singleView.classList.remove('hidden');
+            singleView.classList.add('flex');
+
+            document.getElementById('singleRecipeEmoji').textContent = recipe.emoji;
+            document.getElementById('singleRecipeTitle').textContent = recipe.title;
+
+            renderSingleRecipeDetails();
+        }
+
+        function backToRecipesList() {
+            currentRecipe = null;
+            const singleView = document.getElementById('recipeSingleView');
+            singleView.classList.add('hidden');
+            singleView.classList.remove('flex');
+            document.getElementById('recipesGridView').classList.remove('hidden');
+        }
+
+        function renderSingleRecipeDetails() {
+            if (!currentRecipe) return;
+
+            // Ingredients with large tap-to-strikethrough
+            const ingContainer = document.getElementById('singleRecipeIngredients');
+            ingContainer.innerHTML = '';
+
+            currentRecipe.ingredients.forEach((itemText, idx) => {
+                const isDone = checkedSet.has(idx);
+                const btn = document.createElement('button');
+                btn.onclick = () => {
+                    if (checkedSet.has(idx)) checkedSet.delete(idx);
+                    else checkedSet.add(idx);
+                    renderSingleRecipeDetails();
+                };
+                btn.className = `big-touch-btn w-full text-right p-4 rounded-2xl border-2 flex items-center gap-4 ${
+                    isDone ? 'bg-slate-100 border-slate-300 text-slate-400 line-through' : 'bg-amber-50/70 border-amber-200 text-slate-900'
+                }`;
+                btn.innerHTML = `
+                    <span class="text-3xl">${isDone ? '✅' : '⬜'}</span>
+                    <span class="text-2xl md:text-3xl font-bold">${itemText}</span>
+                `;
+                ingContainer.appendChild(btn);
+            });
+
+            // Numbered Steps
+            const stepsContainer = document.getElementById('singleRecipeSteps');
+            stepsContainer.innerHTML = '';
+
+            currentRecipe.steps.forEach((stepText, idx) => {
+                const row = document.createElement('div');
+                row.className = 'p-4 rounded-2xl bg-emerald-50/60 border-2 border-emerald-200 flex items-start gap-4';
+                row.innerHTML = `
+                    <span class="w-11 h-11 rounded-xl bg-emerald-700 text-white text-2xl font-black flex items-center justify-center shrink-0">
+                        ${idx + 1}
+                    </span>
+                    <p class="text-2xl md:text-3xl font-bold text-slate-800 leading-snug">${stepText}</p>
+                `;
+                stepsContainer.appendChild(row);
+            });
+        }
+
+        // =====================================================
+        // 8. CUTE CHARACTER SCREENSAVER (60s Inactivity)
+        // =====================================================
+        function setupScreensaverTimers() {
+            const resetIdle = () => { idleSeconds = 0; };
+            ['mousedown', 'mousemove', 'touchstart', 'keydown'].forEach(ev => {
+                window.addEventListener(ev, resetIdle, { passive: true });
+            });
+
+            // Check idle every second (never activate screensaver while watching Live TV!)
+            setInterval(() => {
+                if (screensaverOpen || isListening || isTvPlaying) return;
+                idleSeconds++;
+                if (idleSeconds >= 60) {
+                    openScreensaver();
+                }
+            }, 1000);
+
+            // Cute character eye movements & blinking
+            setInterval(() => {
+                if (!screensaverOpen) return;
+                const eyes = document.getElementById('buddyEyes');
+                const offsets = ['translate(0px,0px)', 'translate(-8px,0px)', 'translate(8px,0px)', 'translate(0px,-5px)'];
+                eyes.style.transform = offsets[Math.floor(Math.random() * offsets.length)];
+
+                // Blink
+                document.getElementById('buddyEyesOpen').classList.add('hidden');
+                document.getElementById('buddyEyesBlink').classList.remove('hidden');
+                setTimeout(() => {
+                    document.getElementById('buddyEyesOpen').classList.remove('hidden');
+                    document.getElementById('buddyEyesBlink').classList.add('hidden');
+                }, 240);
+            }, 2600);
+
+            // Spawn musical notes when radio is playing
+            setInterval(() => {
+                if (screensaverOpen && isRadioPlaying) {
+                    const container = document.getElementById('ssNotesContainer');
+                    const note = document.createElement('div');
+                    note.className = 'floating-note absolute text-4xl';
+                    note.textContent = Math.random() > 0.5 ? '🎵' : '🎶';
+                    note.style.left = `${30 + Math.floor(Math.random() * 40)}%`;
+                    note.style.top = '40%';
+                    container.appendChild(note);
+                    setTimeout(() => note.remove(), 3000);
+                }
+            }, 1400);
+        }
+
+        function openScreensaver() {
+            idleSeconds = 0;
+            screensaverOpen = true;
+            updateScreensaverRadioState();
+            const overlay = document.getElementById('screensaverOverlay');
+            overlay.classList.remove('hidden');
+            overlay.classList.add('flex');
+        }
+
+        function closeScreensaver() {
+            screensaverOpen = false;
+            idleSeconds = 0;
+            const overlay = document.getElementById('screensaverOverlay');
+            overlay.classList.add('hidden');
+            overlay.classList.remove('flex');
+        }
+
+        function updateScreensaverRadioState() {
+            const body = document.getElementById('buddySvgBody');
+            const status = document.getElementById('ssStatusLine');
+            const st = STATIONS.find(s => s.id === activeStationId);
+
+            if (isRadioPlaying && st) {
+                body.classList.remove('buddy-idle');
+                body.classList.add('buddy-dancing');
+                status.textContent = `🎵 מנגן ברקע: ${st.name}`;
+            } else {
+                body.classList.remove('buddy-dancing');
+                body.classList.add('buddy-idle');
+                status.textContent = 'שומר על המטבח בחיוך 😊';
+            }
+        }
+    </script>
+</body>
+</html>
